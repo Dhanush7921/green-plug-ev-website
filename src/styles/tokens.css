@@ -1,0 +1,128 @@
+/* GREEN PLUG EV design tokens.
+   The six brand colours are the only hues; everything else is a tint, shade or alpha of them. */
+@font-face {
+  font-family: 'Unbounded';
+  src: url('../assets/fonts/unbounded-var.woff') format('woff');
+  font-weight: 300 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('../assets/fonts/instrument-sans-var.woff') format('woff');
+  font-weight: 400 700;
+  font-stretch: 75% 100%;
+  font-display: swap;
+}
+
+:root {
+  /* palette */
+  --forest: #051f20;
+  --pine: #0b2b26;
+  --spruce: #163832;
+  --moss: #235347;
+  --sage: #8eb69b;
+  --mint: #daf1de;
+  --white: #ffffff;
+
+  --forest-rgb: 5 31 32;
+  --pine-rgb: 11 43 38;
+  --spruce-rgb: 22 56 50;
+  --moss-rgb: 35 83 71;
+  --sage-rgb: 142 182 155;
+  --mint-rgb: 218 241 222;
+
+  /* type */
+  --font-display: 'Unbounded', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.86rem);
+  --step-0: clamp(0.98rem, 0.95rem + 0.15vw, 1.06rem);
+  --step-1: clamp(1.12rem, 1.06rem + 0.3vw, 1.3rem);
+  --step-2: clamp(1.35rem, 1.2rem + 0.7vw, 1.8rem);
+  --step-3: clamp(1.7rem, 1.4rem + 1.4vw, 2.6rem);
+  --step-4: clamp(2.1rem, 1.6rem + 2.4vw, 3.8rem);
+  --step-5: clamp(2.5rem, 1.7rem + 3.9vw, 5.4rem);
+
+  /* space + shape */
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1240px;
+  --radius-s: 10px;
+  --radius-m: 18px;
+  --radius-l: 28px;
+  --radius-xl: 40px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --nav-h: 72px;
+  color-scheme: light;
+}
+
+/* ---------- light theme: white + pale mint, sage gradients, deep-green type ---------- */
+:root,
+:root[data-theme='light'] {
+  --bg: #fbfdfb;
+  --bg-2: #f1f8f2;
+  --bg-tint: var(--mint);
+  --surface: rgb(255 255 255 / 0.78);
+  --surface-solid: #ffffff;
+  --surface-2: #f4faf5;
+  --glass: rgb(255 255 255 / 0.62);
+  --glass-edge: rgb(255 255 255 / 0.9);
+  --line: rgb(var(--spruce-rgb) / 0.12);
+  --line-strong: rgb(var(--spruce-rgb) / 0.24);
+  --text: var(--forest);
+  --text-2: #2c4a43;
+  --muted: #4d6a62;
+  --accent: var(--moss);
+  --accent-strong: var(--spruce);
+  --accent-ink: var(--mint);
+  --glow: rgb(var(--sage-rgb) / 0.55);
+  --halo: rgb(var(--sage-rgb) / 0.32);
+  --focus: var(--moss);
+  --shadow-s: 0 1px 2px rgb(var(--forest-rgb) / 0.06), 0 4px 14px rgb(var(--spruce-rgb) / 0.06);
+  --shadow-m: 0 2px 6px rgb(var(--forest-rgb) / 0.05), 0 18px 40px -12px rgb(var(--spruce-rgb) / 0.18);
+  --shadow-l: 0 4px 10px rgb(var(--forest-rgb) / 0.05), 0 40px 80px -24px rgb(var(--spruce-rgb) / 0.28);
+  --hero-sky: linear-gradient(180deg, #ffffff 0%, #f3faf4 46%, #e2f3e5 100%);
+  --sweep: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.85) 48%, transparent 66%);
+  --grain-opacity: 0.035;
+  --logo-arc: var(--spruce);
+  --logo-plug: var(--moss);
+  --logo-spark: var(--sage);
+  --logo-word: var(--pine);
+  --logo-pill: var(--moss);
+  --logo-pill-ink: var(--mint);
+}
+
+/* ---------- dark theme: deep forest, evergreen surfaces, mint type, luminous emerald ---------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #04191a;
+  --bg-2: var(--forest);
+  --bg-tint: var(--pine);
+  --surface: rgb(var(--pine-rgb) / 0.72);
+  --surface-solid: var(--pine);
+  --surface-2: #0d302a;
+  --glass: rgb(var(--spruce-rgb) / 0.5);
+  --glass-edge: rgb(var(--mint-rgb) / 0.14);
+  --line: rgb(var(--mint-rgb) / 0.1);
+  --line-strong: rgb(var(--mint-rgb) / 0.22);
+  --text: var(--mint);
+  --text-2: #c3dccb;
+  --muted: #98b7a4;
+  --accent: var(--sage);
+  --accent-strong: var(--mint);
+  --accent-ink: var(--forest);
+  --glow: rgb(var(--sage-rgb) / 0.5);
+  --halo: rgb(var(--sage-rgb) / 0.22);
+  --focus: var(--sage);
+  --shadow-s: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 14px rgb(0 0 0 / 0.2);
+  --shadow-m: 0 2px 6px rgb(0 0 0 / 0.3), 0 18px 40px -12px rgb(0 0 0 / 0.5);
+  --shadow-l: 0 4px 10px rgb(0 0 0 / 0.3), 0 40px 80px -24px rgb(0 0 0 / 0.6);
+  --hero-sky: radial-gradient(120% 90% at 62% 38%, #163832 0%, #0b2b26 45%, #051f20 100%);
+  --sweep: linear-gradient(105deg, transparent 30%, rgb(var(--mint-rgb) / 0.35) 48%, transparent 66%);
+  --grain-opacity: 0.06;
+  --logo-arc: var(--mint);
+  --logo-plug: var(--sage);
+  --logo-spark: var(--sage);
+  --logo-word: var(--mint);
+  --logo-pill: var(--sage);
+  --logo-pill-ink: var(--forest);
+}

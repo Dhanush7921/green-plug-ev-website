@@ -1,0 +1,73 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        # Uses package-lock.json when present (commit it after your first local `npm install`).
+        run: if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+
+      - name: Work out the base path
+        id: base
+        # Project sites live at /<repo>/, user/org sites (<name>.github.io) and custom domains at /.
+        # Override with a repository variable BASE_PATH (e.g. "/" when you add a custom domain).
+        run: |
+          REPO="${{ github.event.repository.name }}"
+          if [ -n "${{ vars.BASE_PATH }}" ]; then BASE="${{ vars.BASE_PATH }}";
+          elif [[ "$REPO" == *.github.io ]]; then BASE="/";
+          else BASE="/$REPO/"; fi
+          echo "path=$BASE" >> "$GITHUB_OUTPUT"
+          echo "Base path: $BASE"
+
+      - name: Type-check
+        # Reported but non-blocking, so a types-package update can never stop a content deploy.
+        run: npm run typecheck
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+        env:
+          BASE_PATH: ${{ steps.base.outputs.path }}
+          # Public values only (they end up in the browser bundle). Set them under
+          # Settings -> Secrets and variables -> Actions -> Variables.
+          VITE_LEADS_ENDPOINT: ${{ vars.VITE_LEADS_ENDPOINT }}
+          VITE_PLAY_STORE_URL: ${{ vars.VITE_PLAY_STORE_URL }}
+          VITE_APP_STORE_URL: ${{ vars.VITE_APP_STORE_URL }}
+          VITE_CONTACT_EMAIL: ${{ vars.VITE_CONTACT_EMAIL }}
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.dev/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+test-results/
+# Third-party reference videos/images are kept locally for design work and are not published.
+design-references/videos/
+design-references/images/
+design-references/previous-build/
+design-references/frames/

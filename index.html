@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en-IN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>%TITLE%</title>
+    <meta name="description" content="%DESCRIPTION%" />
+    <meta name="theme-color" content="#FBFDFB" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#051F20" media="(prefers-color-scheme: dark)" />
+    <meta property="og:site_name" content="GREEN PLUG EV" />
+    <meta property="og:title" content="%TITLE%" />
+    <meta property="og:description" content="%DESCRIPTION%" />
+    <meta property="og:image" content="%BASE_URL%brand/app-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%brand/app-icon.svg" />
+    <script>
+      (function () {
+        var d = document.documentElement;
+        try {
+          var t = localStorage.getItem('gpev-theme');
+          if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          d.setAttribute('data-theme', t);
+        } catch (e) {
+          d.setAttribute('data-theme', 'light');
+        }
+        try {
+          var home = location.pathname.replace(/\/+$/, '') === '%BASE_URL%'.replace(/\/+$/, '');
+          var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (home && !reduce && !sessionStorage.getItem('gpev-intro')) d.classList.add('intro-pending');
+        } catch (e) {}
+      })();
+    </script>
+    <!--app-assets-->
+  </head>
+  <body>
+    <noscript>
+      <div style="padding:24px;font-family:system-ui,sans-serif">GREEN PLUG EV is a planned EV charging discovery app for electric cars and bikes in Andhra Pradesh. This website needs JavaScript for its 3D scenes and forms.</div>
+    </noscript>
+    <div id="root"></div>
+  </body>
+</html>

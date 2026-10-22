@@ -1,0 +1,9 @@
+[
+  { "path": "/", "title": "Charging, found closer", "description": "GREEN PLUG EV is a planned app to help electric car and bike riders in Andhra Pradesh find compatible charging, from public stations to participating private hosts." },
+  { "path": "/how-it-works", "title": "How it works", "description": "How the planned GREEN PLUG EV app is meant to work: tell it your vehicle, see compatible options, compare time and estimated cost, then plug in." },
+  { "path": "/drivers", "title": "For drivers", "description": "The planned charging-discovery experience for EV drivers and riders: connector compatibility, availability details, estimated costs and fallback options." },
+  { "path": "/hosts", "title": "For charging hosts", "description": "How eligible charging hosts could take part in GREEN PLUG EV: describe your equipment, set availability and prices, and stay in control." },
+  { "path": "/safety", "title": "Safety and trust", "description": "Suitable equipment, property permission, connector compatibility, accurate information, privacy and transparent policies at GREEN PLUG EV." },
+  { "path": "/faq", "title": "FAQ", "description": "Answers about the planned GREEN PLUG EV platform: compatibility, availability, the app launch, hosting and public versus private charging." },
+  { "path": "/contact", "title": "Contact and early access", "description": "Register early-access interest as a driver or host, propose a partnership or send GREEN PLUG EV a question." }
+]
