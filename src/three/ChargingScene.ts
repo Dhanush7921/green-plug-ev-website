@@ -153,6 +153,7 @@ export class ChargingScene {
       this.car = await loadCar(this.opts.modelUrl, this.m, onProgress);
       this.realisticCar = true;
     } catch (e) {
+      if (this.disposed) return; // page left while the model was downloading
       if (this.opts.useModel) console.warn('[GREEN PLUG EV] Car model unavailable, using simplified car.', e);
       this.car = proceduralCar(this.m);
     }

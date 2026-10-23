@@ -93,6 +93,8 @@ export function PointerSystem() {
       const dark = root.getAttribute('data-theme') === 'dark';
       g.lineCap = 'round';
       for (let i = 1; i < pts.length; i++) {
+        // a jump (e.g. pointer re-entering the window) would draw a long straight streak: skip it
+        if (Math.abs(pts[i].x - pts[i - 1].x) + Math.abs(pts[i].y - pts[i - 1].y) > 90) continue;
         const k = 1 - i / pts.length;
         g.strokeStyle = dark ? `rgba(218,241,222,${0.55 * k})` : `rgba(35,83,71,${0.42 * k})`;
         g.lineWidth = 5 * k + 0.5;

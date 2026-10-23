@@ -223,6 +223,8 @@ export function Cinema() {
       // chapter cards: slide out of depth, energy trail draws alongside
       gsap.utils.toArray<HTMLElement>('.chapter-card').forEach((card) => {
         gsap.fromTo(card, { z: -240, rotationY: -14, autoAlpha: 0, transformPerspective: 1000 }, { z: 0, rotationY: 0, autoAlpha: 1, ease: 'power2.out', scrollTrigger: { trigger: card, start: 'top 92%', end: 'top 50%', scrub: 0.8 } });
+        // the last card (with the filter) stays put while the city builds
+        if (card.closest('[data-ch="city"]')) return;
         gsap.to(card, { autoAlpha: 0, y: -60, ease: 'power1.in', scrollTrigger: { trigger: card, start: 'bottom 40%', end: 'bottom 5%', scrub: 0.8 } });
       });
       gsap.fromTo('.energy-trail path', { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.cine-track', start: 'top top', end: 'bottom bottom', scrub: 0.4 } });

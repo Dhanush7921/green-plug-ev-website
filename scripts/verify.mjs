@@ -60,7 +60,8 @@ async function newPage(vp, opts = {}, { lag = true } = {}) {
     if ((m.type() === 'error' || m.type() === 'warning') && !IGNORE.test(m.text())) errors.push(`${m.type()}: ${m.text()}`);
   });
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
-  page.on('requestfailed', (r) => errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`));
+  // ERR_ABORTED = a download cancelled by navigating away, not a failure
+  page.on('requestfailed', (r) => !/ERR_ABORTED/.test(r.failure()?.errorText || '') && errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`));
   return { ctx, page, errors };
 }
 
@@ -198,10 +199,13 @@ try {
     const shots = [
       ['story-bike', vh * 1.0],
       ['story-energy', vh * 2.0],
-      ['story-city', vh * 3.05],
+      ['story-city', -1],
     ];
     for (const [name, y] of shots) {
-      await page.evaluate((v) => window.scrollTo(0, v), y);
+      await page.evaluate((v) => {
+        const t = document.querySelector('.cine-track');
+        window.scrollTo(0, v >= 0 ? v : t.offsetTop + t.offsetHeight - innerHeight - 5);
+      }, y);
       await wait(3500);
       await page.screenshot({ path: path.join(out, `${name}.png`) });
     }
@@ -324,10 +328,11 @@ try {
     check('Logo returns home', page.url() === url('/'), page.url());
     const assets = await page.evaluate(() => [...document.querySelectorAll('script[src], link[rel="stylesheet"], link[rel="icon"]')].map((e) => e.getAttribute('src') || e.getAttribute('href')));
     check('Asset URLs use the base path', assets.length >= 3 && assets.every((a) => a.startsWith(base)), assets.join(', '));
+    check('Navigation: no console errors', errors.length === 0, errors.slice(0, 4).join(' | '));
+    // (the browser logs the expected HTTP 404 for an unknown path, so this runs after the error check)
     await page.goto(url('/no-such-page'), { waitUntil: 'load' });
     await wait(1000);
     check('Unknown route shows the not-found page', /not plugged in/.test((await page.locator('h1').textContent()) || ''));
-    check('Navigation: no console errors', errors.length === 0, errors.slice(0, 4).join(' | '));
     await ctx.close();
 
     const m = await newPage('mobile');
