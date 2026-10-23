@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ButtonLink } from '../../components/Button';
 import { Icon, type IconName } from '../../components/Icon';
 import { INTRO_DONE, introActive, SCENE_PROGRESS } from '../../components/Intro';
-import { modelUrl } from '../../config/site';
+import { modelUrl, site } from '../../config/site';
 import { gsap, ScrollTrigger, useGSAP } from '../../lib/gsap';
 import { hasFinePointer, prefersReducedMotion, useReducedMotion } from '../../lib/prefs';
 import { currentTheme, THEME_EVENT, type Theme } from '../../lib/theme';
@@ -13,6 +13,11 @@ import type { AnchorMap, ChargingScene, ConnectionStep, PinFilter } from '../../
 import { SceneFallback } from './SceneFallback';
 
 type Mode = 'loading' | '3d' | 'fallback';
+
+// Background video behind the hero sky: an unchanged, self-hosted copy of the supplied MP4, with the supplied URL as a second source.
+const BG_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260815_032550_0386fe58-a20f-497e-bb07-d1266749cc01.mp4';
+const BG_VIDEO_LOCAL = `${site.base}media/background.mp4`;
+const BG_POSTER = `${site.base}media/background-poster.jpg`;
 
 const STEPS: { id: ConnectionStep; label: string }[] = [
   { id: 'opening', label: 'Inlet door opens' },
@@ -166,6 +171,36 @@ export function Cinema() {
 
   useEffect(() => sceneRef.current?.setPinFilter(filter), [filter]);
 
+  // ---- background video: muted, plays only while the stage is visible; still poster for reduced motion,
+  // blocked autoplay or slow loading; hidden entirely (sky gradient shows) if it fails to load ----
+  const bgVideo = useRef<HTMLVideoElement>(null);
+  const [bgFailed, setBgFailed] = useState(false);
+  useEffect(() => {
+    const v = bgVideo.current;
+    if (!v || reduced || bgFailed) {
+      v?.pause();
+      return;
+    }
+    v.muted = true;
+    let visible = true;
+    const sync = () => {
+      if (visible && !document.hidden) v.play().catch(() => v.pause());
+      else v.pause();
+    };
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      sync();
+    });
+    io.observe(v);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+      v.pause();
+    };
+  }, [reduced, bgFailed]);
+
   // ---- the connection plays once the scene is ready and the intro has handed over ----
   useEffect(() => {
     const s = sceneRef.current;
@@ -246,7 +281,14 @@ export function Cinema() {
   return (
     <section className="cine" ref={root} data-mode={mode} data-chapter={chapter} aria-label="GREEN PLUG EV charging story">
       <div className="cine-stage">
-        <div className="cine-sky" aria-hidden="true" />
+        <div className="cine-sky" aria-hidden="true">
+          {!bgFailed && (
+            <video ref={bgVideo} className="cine-bg-video" muted loop playsInline preload={reduced ? 'none' : 'auto'} poster={BG_POSTER} tabIndex={-1} disablePictureInPicture>
+              <source src={BG_VIDEO_LOCAL} type="video/mp4" />
+              <source src={BG_VIDEO_URL} type="video/mp4" onError={() => setBgFailed(true)} />
+            </video>
+          )}
+        </div>
         <canvas ref={canvasRef} className="cine-canvas" aria-hidden="true" />
         <div className="cine-veil" aria-hidden="true" />
         {mode === 'fallback' && <SceneFallback />}
