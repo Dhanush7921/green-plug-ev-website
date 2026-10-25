@@ -3,6 +3,8 @@
 Informational marketing website for **GREEN PLUG EV**, a planned EV charging discovery app for electric cars and bikes, launching first in Andhra Pradesh, India.
 The site explains what the app is intended to do and collects early-access interest. It is not the app: there is no login, booking, payment or live charger data.
 
+The charging app itself (EV Driver, Station Partner and Admin workspaces with an API and PostgreSQL) is being built in [`platform/`](platform/README.md). It runs locally in demo mode and is not deployed.
+
 ## What is inside
 
 - **Seven pages**: Home, How it works, For drivers, For charging hosts, Safety and trust, FAQ, Contact and early access.

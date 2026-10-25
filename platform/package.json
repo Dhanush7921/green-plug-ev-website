@@ -1,0 +1,36 @@
+{
+  "name": "green-plug-ev-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "GREEN PLUG EV charging platform: EV Driver, Station Partner and Admin workspaces with a Node/TypeScript API and PostgreSQL.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "db:setup": "node scripts/build.mjs server && node dist/cli.mjs setup",
+    "db:migrate": "node scripts/build.mjs server && node dist/cli.mjs migrate",
+    "db:seed": "node scripts/build.mjs server && node dist/cli.mjs seed",
+    "db:reset": "node scripts/build.mjs server && node dist/cli.mjs reset",
+    "start": "node dist/server.mjs",
+    "dev": "node scripts/dev.mjs",
+    "typecheck": "tsc -p server/tsconfig.json && tsc -p web/tsconfig.json",
+    "test": "node scripts/test.mjs",
+    "test:e2e": "node tests/e2e/workflow.mjs"
+  },
+  "dependencies": {
+    "gsap": "^3.14.2",
+    "postgres": "^3.4.9",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "esbuild": "^0.28.0",
+    "playwright": "^1.56.0",
+    "typescript": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

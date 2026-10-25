@@ -12,3 +12,7 @@ design-references/videos/
 design-references/images/
 design-references/previous-build/
 design-references/frames/
+# platform: uploaded photos, test storage and end-to-end screenshots stay local
+platform/storage/
+platform/.test-storage/
+platform/tests/e2e/artifacts/
