@@ -727,3 +727,17 @@
     font-size: 0.88rem;
   }
 }
+
+/* ---------------------------------------------------------------- legal & credits */
+.legal-body {
+  display: grid;
+  gap: 16px;
+  max-width: 860px;
+}
+.legal-block {
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: 22px;
+}
+.legal-block h2 {
+  margin-bottom: 8px;
+}

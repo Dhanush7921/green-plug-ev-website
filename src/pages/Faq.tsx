@@ -14,7 +14,7 @@ const GROUPS: Group[] = [
     id: 'platform',
     title: 'The platform',
     items: [
-      qa('What is GREEN PLUG EV?', 'GREEN PLUG EV is a planned app to help electric car and bike riders find charging that fits their vehicle, combining public charging locations with participating private hosts. It is being developed for Andhra Pradesh first.'),
+      qa('What is NEARVOLT EV?', 'NEARVOLT EV is a planned app to help electric car and bike riders find charging that fits their vehicle, combining public charging locations with participating private hosts. It is being developed for Andhra Pradesh first.'),
       qa('Can I use the app today?', 'No. The app is in development and not published on Google Play or the App Store. This website explains the plan and lets you register interest.'),
       qa('Is this a booking or payment service?', 'Not in this phase. There is no login, booking or payment on this website. Booking and in-app payment may be considered later and will be announced clearly if they are built.'),
       qa('Which areas will it cover?', 'The first focus is Andhra Pradesh, India. Which cities come first will depend partly on where early-access drivers and hosts sign up.'),

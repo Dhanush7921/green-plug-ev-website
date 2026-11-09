@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { gsap } from 'gsap';
 import { Cable } from './cable';
+import { bump, Cinematics } from './cinematics';
 import { loadCar, proceduralCar, type CarRig } from './car';
 import { createCharger } from './charger';
 import { COLLAR_DEPTH, createConnector, createConnectorMaterials } from './connector';
@@ -28,6 +29,9 @@ const CHARGER_POS = v3(2.15, 0, -0.35);
 const CHARGER_ROT = Math.PI / 4;
 const SCOOTER_POS = v3(3.95, 0, -1.3);
 const SCOOTER_ROT = Math.PI / 4;
+
+const UP = new THREE.Vector3(0, 1, 0);
+const EMERALD_RIM = new THREE.Color('#3ddc97');
 
 export class ChargingScene {
   readonly renderer: THREE.WebGLRenderer;
@@ -56,6 +60,7 @@ export class ChargingScene {
   private rim = new THREE.DirectionalLight();
   private glowLight = new THREE.PointLight('#8EB69B', 0, 4, 1.8);
   private carLights: THREE.MeshStandardMaterial[] = [];
+  private cine: Cinematics | null = null;
   private aoMats: THREE.MeshBasicMaterial[] = [];
 
   // connection state (driven by GSAP)
@@ -154,7 +159,7 @@ export class ChargingScene {
       this.realisticCar = true;
     } catch (e) {
       if (this.disposed) return; // page left while the model was downloading
-      if (this.opts.useModel) console.warn('[GREEN PLUG EV] Car model unavailable, using simplified car.', e);
+      if (this.opts.useModel) console.warn('[NEARVOLT EV] Car model unavailable, using simplified car.', e);
       this.car = proceduralCar(this.m);
     }
     if (this.disposed) return;
@@ -203,6 +208,9 @@ export class ChargingScene {
     this.bikeCable.reset(260);
     this.scene.add(this.bikeCable.mesh);
 
+    // NEARVOLT cinematic layer (headlights, beams, light sweep, port pulses) on top of the existing scene
+    this.cine = new Cinematics(this.scene, this.car, this.carLights, this.seatPos, this.portNormal, quality);
+    if (this.opts.reducedMotion) this.cine.setOn();
     this.applyTheme();
     this.setConnectionInstant(this.opts.reducedMotion ? 1 : 0);
     this.carCable.reset(300);
@@ -273,6 +281,7 @@ export class ChargingScene {
     });
     for (const c of [this.carCable, this.bikeCable]) c?.uniforms.uGlow.value.set(dark ? '#8EB69B' : '#235347');
     this.charger.capGlowMat.color.set(dark ? '#DAF1DE' : '#ffffff');
+    this.cine?.setTheme(dark);
   }
 
   // ---------------------------------------------------------------- connection
@@ -307,6 +316,7 @@ export class ChargingScene {
   /** Camera establishing move used right after the brand intro. */
   playEstablishing() {
     this.intro.t = 0;
+    this.cine?.ignite(0.35);
     return gsap.to(this.intro, { t: 1, duration: 1.8, ease: 'power3.out' });
   }
 
@@ -433,10 +443,17 @@ export class ChargingScene {
     this.pointer.cy += (this.pointer.y - this.pointer.cy) * k;
     this.updateConnection(dt);
     this.updateStory(dt);
+    this.cine?.update(this.time, this.cs.charge, this.scroll);
   }
 
   private updateStory(dt: number) {
     const s = this.scroll;
+    // transition lighting: the key dims and an emerald rim swells while the camera dolly-zooms out of the hero
+    const tr = bump(0.015, 0.22, s);
+    const t = this.theme;
+    this.key.intensity = t.key[1] * (1 - 0.28 * tr);
+    this.rim.intensity = t.rim[1] * (1 + 2.2 * tr);
+    this.rim.color.set(t.rim[0]).lerp(EMERALD_RIM, 0.75 * tr);
     const city = smooth(0.5, 0.82, s);
     this.env.city.visible = city > 0.001;
     this.env.groundMat.opacity = smooth(0.45, 0.65, s);
@@ -478,6 +495,8 @@ export class ChargingScene {
     if (this.intro.t < 1) {
       const e = 1 - this.intro.t;
       pos.add(this.tmpVec.set(4.5, 3.2, 5.0).multiplyScalar(e));
+      // orbit in from the front three-quarter while closing in
+      pos.sub(tgt).applyAxisAngle(UP, -0.6 * e * e).add(tgt);
     }
     // narrow screens: pull back so the bay fits
     const fit = aspect >= 1.3 ? 1 : Math.min(1.85, (1.3 / aspect) * 0.62);
@@ -494,9 +513,18 @@ export class ChargingScene {
     pos.x += (e[0] * this.pointer.cx * 0.5 - e[4] * this.pointer.cy * 0.25) * infl;
     pos.y += (e[1] * this.pointer.cx * 0.5 - e[5] * this.pointer.cy * 0.25) * infl;
     pos.z += (e[2] * this.pointer.cx * 0.5 - e[6] * this.pointer.cy * 0.25) * infl;
+    // dolly zoom on the way out of the hero: the lens tightens while the camera backs off, keeping the car
+    // the same size as the background compresses behind it
+    const baseFov = 30 - push * 4;
+    const dz = bump(0.015, 0.22, s) * (1 - push);
+    const fov = baseFov - 9 * dz;
+    if (dz > 0.001) {
+      const kz = Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) / Math.tan(THREE.MathUtils.degToRad(fov / 2));
+      pos.sub(tgt).multiplyScalar(kz).add(tgt);
+    }
     this.camera.position.copy(pos);
     this.camera.lookAt(tgt);
-    this.camera.fov = 30 - push * 4;
+    this.camera.fov = fov;
     // composition: scene to the right of the copy on wide screens, lower on portrait
     const hero = 1 - smooth(0.04, 0.25, s);
     const offX = aspect > 1.1 ? -w * Math.min(0.2, 0.06 + (aspect - 1.1) * 0.28) * Math.max(hero, push) : 0;
@@ -546,6 +574,8 @@ export class ChargingScene {
       scroll: this.scroll,
       push: this.cs.push,
       introT: this.intro.t,
+      fov: +this.camera.fov.toFixed(2),
+      cinematics: this.cine?.diagnostics() ?? null,
       camera: this.camera.position.toArray().map((v) => +v.toFixed(2)),
     };
   }
@@ -571,6 +601,7 @@ export class ChargingScene {
     this.disposed = true;
     this.stop();
     this.connTl?.kill();
+    this.cine?.dispose();
     this.opts.canvas.removeEventListener('webglcontextlost', this.handleLost);
     this.scene.traverse((o) => {
       const mesh = o as THREE.Mesh;

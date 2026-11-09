@@ -128,7 +128,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
   const W = LAYOUT.total;
 
   return (
-    <div className="intro" ref={root} role="dialog" aria-modal="true" aria-label="GREEN PLUG EV introduction">
+    <div className="intro" ref={root} role="dialog" aria-modal="true" aria-label="NEARVOLT EV introduction">
       <div className="ii-atmos" aria-hidden="true" />
       <div className="ii-stage">
         <svg className="ii-logo" viewBox={`-10 -6 ${W + 20} 118`} aria-hidden="true">
@@ -157,6 +157,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
                 <path key={i} d={g.d} transform={`translate(${LAYOUT.wordX} ${LAYOUT.baseline})`} />
               ))}
               <path d={MARK.plug} />
+              <path d={MARK.prongs} />
               <rect x={LAYOUT.pill.x} y={LAYOUT.pill.y} width={LAYOUT.pill.w} height={LAYOUT.pill.h} rx={LAYOUT.pill.h / 2} />
             </clipPath>
             <filter id="ii-blur" x="-20%" y="-50%" width="140%" height="200%">

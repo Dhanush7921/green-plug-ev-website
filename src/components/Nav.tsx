@@ -112,7 +112,7 @@ export function Nav() {
     <>
       <header className="nav" ref={navRef} data-open={open || undefined}>
         <nav className="nav-inner" aria-label="Main">
-          <Link to="/" className="nav-logo" aria-label="GREEN PLUG EV home">
+          <Link to="/" className="nav-logo" aria-label="NEARVOLT EV home">
             <Logo decorative />
           </Link>
           <ul className="nav-links" ref={listRef} onMouseLeave={() => moveBeam(current())}>
@@ -160,7 +160,6 @@ export function Nav() {
           <ButtonLink to="/contact?form=driver" icon="arrow-right">
             Join early access
           </ButtonLink>
-          <p>GREEN PLUG EV is a planned app. Nothing on this website is a live charging service yet.</p>
         </div>
       </div>
     </>

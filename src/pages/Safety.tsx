@@ -62,7 +62,7 @@ export default function Safety() {
             Trust is the <span className="ink-gradient">first connection.</span>
           </>
         }
-        lede="The principles GREEN PLUG EV is being built on. They describe how we intend to run the service; no hosts have been verified and no charging locations are connected yet."
+        lede="The principles NEARVOLT EV is being built on. They describe how we intend to run the service; no hosts have been verified and no charging locations are connected yet."
       >
         <nav className="toc" aria-label="On this page">
           {PRINCIPLES.map((p) => (

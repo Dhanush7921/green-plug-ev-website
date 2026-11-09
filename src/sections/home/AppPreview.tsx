@@ -55,7 +55,7 @@ export function AppPreview() {
                 </div>
                 <div className="screen-brand">
                   <LogoMark />
-                  <span>GREEN PLUG EV</span>
+                  <span>NEARVOLT EV</span>
                 </div>
                 <div className="screen-search">
                   <Icon name="search" />

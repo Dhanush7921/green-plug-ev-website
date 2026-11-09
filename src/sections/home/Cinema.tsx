@@ -22,6 +22,10 @@ const STEPS: { id: ConnectionStep; label: string }[] = [
   { id: 'charging', label: 'Charging' },
 ];
 const ORDER: ConnectionStep[] = ['ready', 'opening', 'aligning', 'inserting', 'locked', 'charging'];
+const CELLS = 10;
+/** 0 → 1 → 0 over [a, b]; used for the hero → chapter transition (matches the scene's dolly zoom). */
+const bump = (a: number, b: number, x: number) => Math.sin(Math.PI * Math.min(1, Math.max(0, (x - a) / (b - a)))) ** 2;
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
 const ANCHORS: { id: string; icon: IconName; text: string; chapter: 'hero' | 'bike' | 'city'; kinds?: PinFilter[] }[] = [
   { id: 'port', icon: 'plug-zap', text: 'CCS2 inlet', chapter: 'hero' },
@@ -38,6 +42,7 @@ export function Cinema() {
   const sceneRef = useRef<ChargingScene | null>(null);
   const anchorEls = useRef<Record<string, HTMLElement | null>>({});
   const hud = useRef<HTMLDivElement>(null);
+  const link = useRef<SVGSVGElement>(null);
   const [mode, setMode] = useState<Mode>('loading');
   const [loadPct, setLoadPct] = useState(0);
   const [filter, setFilter] = useState<PinFilter>('all');
@@ -68,7 +73,7 @@ export function Cinema() {
         try {
           scene = new mod.ChargingScene({ canvas, quality: low ? 'low' : 'high', theme: currentTheme(), reducedMotion: prefersReducedMotion(), modelUrl, useModel: true });
         } catch (err) {
-          console.warn('[GREEN PLUG EV] 3D unavailable, showing the illustration instead.', err);
+          console.warn('[NEARVOLT EV] 3D unavailable, showing the illustration instead.', err);
           return setMode('fallback');
         }
         const s = scene;
@@ -86,6 +91,7 @@ export function Cinema() {
         const chipBox = new WeakMap<HTMLElement, number>();
         s.onAnchors = (a: AnchorMap) => {
           const vw = canvas.clientWidth;
+          drawLink(a.port);
           for (const [id, p] of Object.entries(a)) {
             const el = anchorEls.current[id];
             if (!el) continue;
@@ -99,6 +105,29 @@ export function Cinema() {
             const shift = left < 12 ? 12 - left : left + w > vw - 12 ? vw - 12 - (left + w) : 0;
             chip.style.translate = `${shift.toFixed(1)}px 0`;
           }
+        };
+        // NEARVOLT energy link: a luminous path from the car's inlet to the charging HUD while it charges
+        const drawLink = (port?: { x: number; y: number; visible: boolean }) => {
+          const svg = link.current;
+          const h = hud.current;
+          if (!svg || !h || !port) return;
+          const step = h.dataset.step;
+          const story = Number(root.current?.style.getPropertyValue('--story') || 0);
+          const on = (step === 'locked' || step === 'charging') && port.visible && window.innerWidth >= 1000 && story < 0.12;
+          svg.dataset.on = on ? '1' : '';
+          if (!on) return;
+          const c = canvas.getBoundingClientRect();
+          const r = h.getBoundingClientRect();
+          const hx = r.left - c.left - 6;
+          const hy = r.top - c.top + 64;
+          const { x: px, y: py } = port;
+          const d = `M${px.toFixed(1)} ${py.toFixed(1)} C ${(px + (hx - px) * 0.35).toFixed(1)} ${(py - 90).toFixed(1)}, ${(hx - 120).toFixed(1)} ${hy.toFixed(1)}, ${hx.toFixed(1)} ${hy.toFixed(1)}`;
+          svg.setAttribute('viewBox', `0 0 ${c.width.toFixed(0)} ${c.height.toFixed(0)}`);
+          svg.querySelectorAll('path').forEach((pth) => pth.setAttribute('d', d));
+          const node = svg.querySelector('circle');
+          node?.setAttribute('cx', px.toFixed(1));
+          node?.setAttribute('cy', py.toFixed(1));
+          svg.style.opacity = String(clamp01(1 - story * 9));
         };
         let lastStep = '';
         s.onStatus = (step, pct) => {
@@ -118,6 +147,8 @@ export function Cinema() {
           const pctEl = h.querySelector('.hud-pct');
           if (pctEl) pctEl.textContent = step === 'charging' ? `${Math.round(pct)}%` : '—';
           h.style.setProperty('--level', String(step === 'charging' ? pct / 100 : 0));
+          const lit = step === 'charging' ? Math.round((pct / 100) * CELLS) : 0;
+          h.querySelectorAll<HTMLElement>('.hud-cell').forEach((cell, i) => (cell.dataset.on = i < lit ? '1' : ''));
         };
         s.onContextLost = () => setMode('fallback');
 
@@ -153,7 +184,7 @@ export function Cinema() {
         else s.start();
       })
       .catch((err) => {
-        console.warn('[GREEN PLUG EV] Could not load the 3D scene.', err);
+        console.warn('[NEARVOLT EV] Could not load the 3D scene.', err);
         if (!disposed) setMode('fallback');
       });
     return () => {
@@ -186,6 +217,8 @@ export function Cinema() {
       if (title) kineticHeading(title, { delay: 0.15, scroll: false });
       gsap.from('.hero-copy .kicker, .hero-lede, .hero-actions > *, .hero-status', { y: 30, autoAlpha: 0, rotationX: -25, transformPerspective: 700, transformOrigin: '50% 0%', duration: 1.1, stagger: 0.08, ease: 'expo.out', delay: 0.6 });
       gsap.from('.hud', { x: 40, autoAlpha: 0, duration: 1.1, ease: 'expo.out', delay: 1.0 });
+      gsap.fromTo('.hero-underline .hu-line', { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.4, ease: 'power3.inOut', delay: 1.05 });
+      gsap.fromTo('.hero-underline', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, delay: 1.0 });
     },
     [introDone],
     root,
@@ -216,13 +249,21 @@ export function Cinema() {
           const p = self.progress;
           s.setScroll(p);
           root.current?.style.setProperty('--story', p.toFixed(3));
+          root.current?.style.setProperty('--tx', bump(0.015, 0.22, p).toFixed(3));
+          root.current?.style.setProperty('--streak', clamp01((p - 0.04) / 0.16).toFixed(3));
           const ch = p < 0.18 ? 'hero' : p < 0.5 ? 'bike' : p < 0.8 ? 'energy' : 'city';
           setChapter((c) => (c === ch ? c : ch));
         },
       });
       // chapter cards: slide out of depth, energy trail draws alongside
       gsap.utils.toArray<HTMLElement>('.chapter-card').forEach((card) => {
-        gsap.fromTo(card, { z: -240, rotationY: -14, autoAlpha: 0, transformPerspective: 1000 }, { z: 0, rotationY: 0, autoAlpha: 1, ease: 'power2.out', scrollTrigger: { trigger: card, start: 'top 92%', end: 'top 50%', scrub: 0.8 } });
+        gsap.fromTo(
+          card,
+          { z: -240, rotationY: -14, autoAlpha: 0, transformPerspective: 1000, clipPath: 'inset(0% 100% 0% 0% round 28px)' },
+          { z: 0, rotationY: 0, autoAlpha: 1, clipPath: 'inset(0% 0% 0% 0% round 28px)', ease: 'power2.out', scrollTrigger: { trigger: card, start: 'top 92%', end: 'top 50%', scrub: 0.8 } },
+        );
+        const title = card.querySelector<HTMLElement>('.h2');
+        if (title) kineticHeading(title);
         // the last card (with the filter) stays put while the city builds
         if (card.closest('[data-ch="city"]')) return;
         gsap.to(card, { autoAlpha: 0, y: -60, ease: 'power1.in', scrollTrigger: { trigger: card, start: 'bottom 40%', end: 'bottom 5%', scrub: 0.8 } });
@@ -244,7 +285,7 @@ export function Cinema() {
   };
 
   return (
-    <section className="cine" ref={root} data-mode={mode} data-chapter={chapter} aria-label="GREEN PLUG EV charging story">
+    <section className="cine" ref={root} data-mode={mode} data-chapter={chapter} aria-label="NEARVOLT EV charging story">
       <div className="cine-stage">
         <div className="cine-sky" aria-hidden="true" />
         <canvas ref={canvasRef} className="cine-canvas" aria-hidden="true" />
@@ -276,6 +317,23 @@ export function Cinema() {
             </div>
           ))}
         </div>
+        <svg className="energy-link" ref={link} aria-hidden="true" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="nv-link" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#3ddc97" stopOpacity="0.95" />
+              <stop offset="1" stopColor="#DAF1DE" stopOpacity="0.5" />
+            </linearGradient>
+          </defs>
+          <path className="el-glow" />
+          <path className="el-base" />
+          <path className="el-flow" />
+          <circle className="el-node" r="5" />
+        </svg>
+        <div className="cine-letterbox" aria-hidden="true">
+          <i />
+          <i />
+        </div>
+        <div className="cine-streak" aria-hidden="true" />
         <svg className="energy-trail" viewBox="0 0 40 400" preserveAspectRatio="none" aria-hidden="true">
           <path d="M20 0 C 36 60, 4 120, 20 180 S 36 300, 20 400" pathLength={1} strokeDasharray="1 1" />
         </svg>
@@ -288,8 +346,12 @@ export function Cinema() {
             <h1 className="display hero-title" data-manual>
               Charging, <span className="ink-gradient">found closer.</span>
             </h1>
+            <svg className="hero-underline" viewBox="0 0 400 18" preserveAspectRatio="none" aria-hidden="true">
+              <path className="hu-line" d="M2 12 C 110 3, 250 17, 398 7" pathLength={1} strokeDasharray="1 1" />
+              <path className="hu-pulse" d="M2 12 C 110 3, 250 17, 398 7" pathLength={1} />
+            </svg>
             <p className="lede hero-lede">
-              GREEN PLUG EV is an app in development to help electric car and bike riders find charging that fits their vehicle, from public stations to participating private
+              NEARVOLT EV is an app in development to help electric car and bike riders find charging that fits their vehicle, from public stations to participating private
               hosts, with clear estimates before they go.
             </p>
             <div className="hero-actions">
@@ -329,6 +391,11 @@ export function Cinema() {
                   Ready
                 </p>
               </div>
+            </div>
+            <div className="hud-cells" aria-hidden="true">
+              {Array.from({ length: CELLS }, (_, i) => (
+                <span key={i} className="hud-cell" />
+              ))}
             </div>
             <ol className="hud-steps" role="list">
               {STEPS.map((s) => (

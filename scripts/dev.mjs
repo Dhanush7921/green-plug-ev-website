@@ -16,7 +16,7 @@ const htmlPlugin = {
   name: 'html',
   setup(build) {
     build.onEnd((result) => {
-      if (result.metafile) writeHtml({ outdir, base, metafile: result.metafile, dev: true, brand: 'GREEN PLUG EV' });
+      if (result.metafile) writeHtml({ outdir, base, metafile: result.metafile, dev: true, brand: 'NEARVOLT EV' });
     });
   },
 };
@@ -25,4 +25,4 @@ const ctx = await esbuild.context({ ...esbuildOptions({ mode, base, outdir, env 
 await ctx.watch();
 const port = Number(process.env.PORT || 5173);
 const { hosts } = await ctx.serve({ servedir: outdir, port, fallback: path.join(outdir, 'index.html') });
-console.log(`GREEN PLUG EV dev server: http://${hosts[0] === '0.0.0.0' ? 'localhost' : hosts[0]}:${port}/`);
+console.log(`NEARVOLT EV dev server: http://${hosts[0] === '0.0.0.0' ? 'localhost' : hosts[0]}:${port}/`);

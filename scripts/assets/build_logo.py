@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Builds the GREEN PLUG EV logo set from one definition:
+Builds the NEARVOLT EV logo set from one definition:
   public/brand/logo-on-light.svg, logo-on-dark.svg, mark.svg, mark-on-dark.svg, app-icon.svg
   public/favicon.svg
   src/brand/brandPaths.ts  (outlined path data used by the React logo and the intro animation)
@@ -24,13 +24,13 @@ ROOT = os.path.join(os.path.dirname(__file__), '..', '..')
 PAL = {'forest': '#051F20', 'pine': '#0B2B26', 'spruce': '#163832', 'moss': '#235347', 'sage': '#8EB69B', 'mint': '#DAF1DE'}
 
 # ---------------------------------------------------------------- mark (64 x 64 units)
-# A charging cable that curls into a "G" and ends in a plug pointing into its centre,
-# with a spark node where the cable starts.
+# NEARVOLT EV mark: an "N" whose diagonal is a lightning bolt ("volt"), inside an open proximity ring ("near"),
+# with a spark node in the ring's opening.
 MARK = {
-    'arc': 'M45.5 15.9A21 21 0 1 0 53 32L44 32',  # cable: open G, then the stem into the plug
-    'plug': 'M36 25h8a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3Z',
-    'prongs': 'M26.5 27.6h6.5v3.2h-6.5a1.6 1.6 0 0 1 0-3.2ZM26.5 33.2h6.5v3.2h-6.5a1.6 1.6 0 0 1 0-3.2Z',
-    'spark': 'M53.6 6.2l1.5 3.4 3.4 1.5-3.4 1.5-1.5 3.4-1.5-3.4-3.4-1.5 3.4-1.5Z',
+    'arc': 'M52.8 29.08A21 21 0 1 1 34.92 11.2',  # open proximity ring
+    'plug': 'M23.11 25.59 29.92 30.48 25.12 32.48 38.31 41.99 40.89 38.41 34.08 33.52 38.88 31.52 25.69 22.01Z',  # lightning-bolt diagonal of the N
+    'prongs': 'M21.4 22.9a2.3 2.3 0 0 1 4.6 0v18.2a2.3 2.3 0 0 1 -4.6 0ZM38 22.9a2.3 2.3 0 0 1 4.6 0v18.2a2.3 2.3 0 0 1 -4.6 0Z',  # the N's two legs
+    'spark': 'M48.6 9.2l1.5 3.4 3.4 1.5-3.4 1.5-1.5 3.4-1.5-3.4-3.4-1.5 3.4-1.5Z',
 }
 ARC_WIDTH = 7.5
 
@@ -69,7 +69,7 @@ def glyph_paths(text, size, tracking=0.0):
 
 
 WORD_SIZE = 26  # cap height in logo units
-word, word_w = glyph_paths('GREEN PLUG', WORD_SIZE, tracking=0.02)
+word, word_w = glyph_paths('NEARVOLT', WORD_SIZE, tracking=0.02)
 ev, ev_w = glyph_paths('EV', WORD_SIZE * 0.62, tracking=0.04)
 
 MARK_SIZE = 64
@@ -85,7 +85,7 @@ TOTAL_W = pill_x + pill_w + 2
 
 
 def logo_svg(c):
-    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {TOTAL_W:.1f} 64" role="img" aria-labelledby="t"><title id="t">GREEN PLUG EV</title>']
+    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {TOTAL_W:.1f} 64" role="img" aria-labelledby="t"><title id="t">NEARVOLT EV</title>']
     parts.append(mark_svg(c['arc'], c['plug'], c['spark']))
     parts.append(f'<g transform="translate({word_x} {baseline})" fill="{c["word"]}">' + ''.join(f'<path d="{g["d"]}"/>' for g in word) + '</g>')
     parts.append(f'<rect x="{pill_x:.2f}" y="{pill_y:.2f}" width="{pill_w:.2f}" height="{pill_h:.2f}" rx="{pill_h / 2:.2f}" fill="{c["pill"]}"/>')

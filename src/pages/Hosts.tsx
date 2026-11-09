@@ -40,7 +40,7 @@ export default function Hosts() {
             Your charger, <span className="ink-gradient">your terms.</span>
           </>
         }
-        lede="Homes, shops, cafés, hotels and offices with suitable charging equipment could offer it to nearby drivers through GREEN PLUG EV. Hosting is planned, not open yet. Registering interest helps us design it around you."
+        lede="Homes, shops, cafés, hotels and offices with suitable charging equipment could offer it to nearby drivers through NEARVOLT EV. Hosting is planned, not open yet. Registering interest helps us design it around you."
       >
         <ButtonLink to="/contact?form=host" icon="arrow-right">
           Register host interest

@@ -11,7 +11,7 @@ export function StoreSection() {
             On your phone, when it is ready.
           </h2>
           <p className="lede" data-scan>
-            GREEN PLUG EV is planned for Android and iPhone. We are not publishing store links until the apps are real.
+            NEARVOLT EV is planned for Android and iPhone. We are not publishing store links until the apps are real.
           </p>
         </div>
         <StoreCards />

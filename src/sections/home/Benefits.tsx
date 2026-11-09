@@ -9,7 +9,7 @@ const SIDES: Side[] = [
     word: 'DRIVE',
     kicker: 'For drivers and riders',
     title: 'Arrive at a plug that fits.',
-    text: 'Cars, bikes and scooters charge in different ways. GREEN PLUG EV is being shaped so each rider sees what works for their vehicle, with honest estimates and a plan B.',
+    text: 'Cars, bikes and scooters charge in different ways. NEARVOLT EV is being shaped so each rider sees what works for their vehicle, with honest estimates and a plan B.',
     points: [
       { icon: 'plug', text: 'Connector and power matched to your vehicle' },
       { icon: 'indian-rupee', text: 'Estimated cost shown before you go' },

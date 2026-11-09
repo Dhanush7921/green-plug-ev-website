@@ -28,6 +28,7 @@ const routes = {
   '/safety': page(() => import('./pages/Safety')),
   '/faq': page(() => import('./pages/Faq')),
   '/contact': page(() => import('./pages/Contact')),
+  '/legal': page(() => import('./pages/Legal')),
 };
 
 export function App() {

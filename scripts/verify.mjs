@@ -97,9 +97,9 @@ try {
       const r = svg?.getBoundingClientRect();
       return { glyphs: svg?.querySelectorAll('.glyph').length, pill: !!svg?.querySelector('.logo-pill'), w: r?.width, h: r?.height, fill: svg && getComputedStyle(svg.querySelector('.logo-word')).fill };
     });
-    check('Logo: nav wordmark renders (9 glyphs + EV pill)', nav.glyphs === 9 && nav.pill && nav.w > 120 && nav.h > 20, JSON.stringify(nav));
+    check('Logo: nav wordmark renders (8 glyphs NEARVOLT + EV pill)', nav.glyphs === 8 && nav.pill && nav.w > 120 && nav.h > 20, JSON.stringify(nav));
     const footer = await page.locator('.footer-logo .glyph').count();
-    check('Logo: footer logo renders', footer === 9);
+    check('Logo: footer logo renders', footer === 8);
     for (const f of ['favicon.svg', 'brand/logo-on-light.svg', 'brand/logo-on-dark.svg', 'brand/app-icon.svg', 'brand/mark.svg']) {
       const res = await page.request.get(url(`/${f}`));
       check(`Logo asset ${f} served`, res.ok() && (await res.text()).includes('<svg'));

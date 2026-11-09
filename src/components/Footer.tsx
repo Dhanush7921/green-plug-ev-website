@@ -50,7 +50,7 @@ export function Footer() {
 
         <div className="footer-grid">
           <div className="footer-brand">
-            <Link to="/" aria-label="GREEN PLUG EV home">
+            <Link to="/" aria-label="NEARVOLT EV home">
               <Logo decorative className="logo footer-logo" />
             </Link>
             <p className="muted">A planned EV charging discovery app for electric cars and bikes, launching first in {site.region}, India.</p>
@@ -117,19 +117,12 @@ export function Footer() {
         </svg>
 
         <div className="footer-bottom">
-          <p>
-            {site.name} is preparing a charging-discovery app. It is not available yet: no stations or hosts are listed, nothing can be booked or paid for, and any screens, prices or
-            locations shown on this website are labelled previews or examples.
-          </p>
-          <p className="credits">
-            3D car: “Car Concept” © 2024 Darmstadt Graphics Group GmbH (artist Eric Chadwick), from a CC0 model by Unity Fan, used under{' '}
-            <a className="text-link" href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
-              CC BY 4.0
-            </a>
-            ; logos removed, materials and parts modified. Charger, scooter and connector are original stylised models. Icons: Lucide (ISC). Fonts: Unbounded and Instrument Sans (SIL OFL).
-          </p>
+          <p>{site.name} is in development — the app is not available yet. Screens and locations shown are previews.</p>
           <span>
-            © {new Date().getFullYear()} {site.name}
+            © {new Date().getFullYear()} {site.name} ·{' '}
+            <Link to="/legal" className="text-link">
+              Legal &amp; credits
+            </Link>
           </span>
         </div>
       </div>

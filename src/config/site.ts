@@ -5,7 +5,7 @@ import routes from './routes.json';
 const env = import.meta.env;
 
 export const site = {
-  name: 'GREEN PLUG EV',
+  name: 'NEARVOLT EV',
   region: 'Andhra Pradesh',
   contactEmail: (env.VITE_CONTACT_EMAIL || '').trim(),
   leadsEndpoint: (env.VITE_LEADS_ENDPOINT || '').trim(),

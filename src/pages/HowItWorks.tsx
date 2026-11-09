@@ -78,7 +78,7 @@ export default function HowItWorks() {
             From low battery to <span className="ink-gradient">plugged in</span>, in four steps.
           </>
         }
-        lede="This is how the planned GREEN PLUG EV app is meant to work once it launches. Nothing here is live yet; we are sharing the design so drivers and hosts can shape it."
+        lede="This is how the planned NEARVOLT EV app is meant to work once it launches. Nothing here is live yet; we are sharing the design so drivers and hosts can shape it."
       >
         <span className="badge">Planned product · not yet available</span>
       </PageHero>

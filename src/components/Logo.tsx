@@ -2,13 +2,13 @@ import { forwardRef } from 'react';
 import { ARC_WIDTH, EV, LAYOUT, MARK, WORD } from '../brand/brandPaths';
 
 /**
- * GREEN PLUG EV logo, drawn inline from the editable sources in src/brand/brandPaths.ts
+ * NEARVOLT EV logo, drawn inline from the editable sources in src/brand/brandPaths.ts
  * (regenerate with scripts/assets/build_logo.py). Colours come from theme tokens, so one
  * component serves light and dark backgrounds. Static files live in public/brand/.
  */
 export const Logo = forwardRef<SVGSVGElement, { className?: string; decorative?: boolean }>(function Logo({ className = 'logo', decorative = false }, ref) {
   return (
-    <svg ref={ref} className={className} viewBox={`0 0 ${LAYOUT.total} 64`} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : 'GREEN PLUG EV'}>
+    <svg ref={ref} className={className} viewBox={`0 0 ${LAYOUT.total} 64`} role={decorative ? undefined : 'img'} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : 'NEARVOLT EV'}>
       <MarkGroup />
       <g className="logo-word" transform={`translate(${LAYOUT.wordX} ${LAYOUT.baseline})`}>
         {WORD.map((g, i) => (

@@ -1,4 +1,4 @@
-// Production build for the GREEN PLUG EV website.
+// Production build for the NEARVOLT EV website.
 // Uses esbuild directly (the same compiler Vite uses internally) and follows Vite's
 // conventions: VITE_* variables from .env files, import.meta.env.BASE_URL, index.html template.
 import * as esbuild from 'esbuild';
@@ -67,7 +67,7 @@ export function esbuildOptions({ mode, base, outdir, env }) {
 const routes = JSON.parse(fs.readFileSync(path.join(root, 'src/config/routes.json'), 'utf8'));
 const esc = (v) => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-export function writeHtml({ outdir, base, metafile, dev = false, brand = 'GREEN PLUG EV' }) {
+export function writeHtml({ outdir, base, metafile, dev = false, brand = 'NEARVOLT EV' }) {
   const outputs = Object.entries(metafile.outputs);
   const entry = outputs.find(([, o]) => o.entryPoint === 'src/main.tsx');
   if (!entry) throw new Error('Entry output not found');
@@ -112,7 +112,7 @@ async function main() {
   const t0 = Date.now();
   const result = await esbuild.build(esbuildOptions({ mode, base, outdir, env }));
   copyPublic(outdir);
-  writeHtml({ outdir, base, metafile: result.metafile, brand: 'GREEN PLUG EV' });
+  writeHtml({ outdir, base, metafile: result.metafile, brand: 'NEARVOLT EV' });
   const sizes = Object.entries(result.metafile.outputs)
     .map(([file, o]) => `  ${path.relative(root, file).padEnd(48)} ${(o.bytes / 1024).toFixed(1).padStart(8)} kB`)
     .join('\n');
