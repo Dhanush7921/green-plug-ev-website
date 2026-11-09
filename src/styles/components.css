@@ -1366,3 +1366,73 @@ html.has-cursor textarea {
 [data-played='1'] .scan-line::after {
   opacity: 0;
 }
+
+/* ================= Intro film ================= */
+.intro-film {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--forest);
+  transition: opacity 0.6s ease;
+}
+.intro-film.is-leaving {
+  opacity: 0;
+}
+.if-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* portrait phones: show the whole 16:9 frame (the film is letterboxed by design) */
+@media (max-aspect-ratio: 1/1) {
+  .if-video {
+    object-fit: contain;
+  }
+}
+.if-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgb(var(--mint-rgb) / 0.12);
+}
+.if-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--sage), var(--mint));
+  transform-origin: 0 50%;
+  transition: transform 0.25s linear;
+}
+.if-skip {
+  position: absolute;
+  right: clamp(16px, 3vw, 36px);
+  bottom: clamp(18px, 4vh, 40px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid rgb(var(--mint-rgb) / 0.35);
+  border-radius: 999px;
+  color: var(--mint);
+  background: rgb(5 31 32 / 0.55);
+  backdrop-filter: blur(10px);
+  font: 500 14px/1 var(--font-body, inherit);
+  cursor: pointer;
+}
+.if-skip kbd {
+  font: inherit;
+  font-size: 11px;
+  opacity: 0.6;
+  padding: 3px 6px;
+  border: 1px solid rgb(var(--mint-rgb) / 0.3);
+  border-radius: 6px;
+}
+.if-skip:hover {
+  background: rgb(35 83 71 / 0.75);
+}
+.if-skip:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}

@@ -76,8 +76,8 @@ export function Intro({ onDone }: { onDone: () => void }) {
       .fromTo('.ii-arc', { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.1, ease: 'power2.inOut' }, 0.35)
       .fromTo('.ii-comet', { strokeDashoffset: 1.12 }, { strokeDashoffset: -0.02, duration: 1.1, ease: 'power2.inOut' }, 0.35)
       .to('.ii-comet', { autoAlpha: 0, duration: 0.3 }, 1.35)
-      .fromTo('.ii-plug', { scale: 0.2, autoAlpha: 0, svgOrigin: '40 32' }, { scale: 1, autoAlpha: 1, duration: 0.6, ease: 'back.out(2.2)' }, 1.05)
-      .fromTo('.ii-spark', { scale: 0, rotate: -90, svgOrigin: '53.6 11' }, { scale: 1, rotate: 0, duration: 0.6, ease: 'back.out(3)' }, 1.3)
+      .fromTo('.ii-plug', { scale: 0.2, autoAlpha: 0, svgOrigin: '32 32' }, { scale: 1, autoAlpha: 1, duration: 0.6, ease: 'back.out(2.2)' }, 1.05)
+      .fromTo('.ii-spark', { scale: 0, rotate: -90, svgOrigin: '48.6 14.1' }, { scale: 1, rotate: 0, duration: 0.6, ease: 'back.out(3)' }, 1.3)
       // letters rise out of the baseline as outlines
       .to(glyphs, { y: 0, duration: 0.9, stagger: { each: 0.07, from: 'start' }, ease: 'expo.out' }, 0.95)
       .to(glyphs, { strokeDashoffset: 0, duration: 0.9, stagger: 0.07, ease: 'power2.inOut' }, 0.95)
@@ -217,6 +217,103 @@ export function Intro({ onDone }: { onDone: () => void }) {
         {progress > 0 && progress < 100 ? `Preparing the 3D scene · ${progress}%` : ' '}
       </p>
       <button ref={skipRef} type="button" className="ii-skip" onClick={skip}>
+        Skip intro <kbd>Esc</kbd>
+      </button>
+    </div>
+  );
+}
+
+/**
+ * NEARVOLT EV intro film (~9 s, silent): the EV glides into the charging bay, the connector plugs in, energy runs
+ * down the cable, then the NEARVOLT EV title card. Rendered from the site's own 3D scene (licensed car model, see
+ * Legal & credits). Plays once per session on the home page; Skip / Esc at any time. If the film cannot start quickly
+ * (autoplay blocked, slow network, Data Saver, decoding error) the animated logo intro plays instead.
+ */
+export function IntroFilm({ onDone }: { onDone: () => void }) {
+  const [fallback, setFallback] = useState(() => {
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    return !!nav.connection?.saveData;
+  });
+  const root = useRef<HTMLDivElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
+  const skipRef = useRef<HTMLButtonElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [leaving, setLeaving] = useState(false);
+  const base = import.meta.env.BASE_URL || '/';
+  // H.264 where supported (Safari, Chrome, Edge), VP9 WebM otherwise (open-source Chromium/Firefox builds)
+  const [src] = useState(() => {
+    const probe = document.createElement('video');
+    return `${base}media/nearvolt-intro.${probe.canPlayType('video/mp4; codecs="avc1.42E01E"') ? 'mp4' : 'webm'}`;
+  });
+
+  useEffect(() => {
+    if (fallback) return;
+    const html = document.documentElement;
+    html.classList.remove('intro-pending');
+    html.classList.add('intro-active');
+    try {
+      sessionStorage.setItem(KEY, '1');
+    } catch {
+      /* private mode: may replay */
+    }
+    skipRef.current?.focus({ preventScroll: true });
+    const v = video.current!;
+    let finished = false;
+    let started = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      html.classList.remove('intro-active');
+      window.dispatchEvent(new Event(INTRO_DONE));
+      onDone();
+    };
+    const leave = () => {
+      if (finished) return;
+      setLeaving(true);
+      window.setTimeout(finish, 600);
+    };
+    const toFallback = () => {
+      if (started || finished) return;
+      finished = true;
+      setFallback(true);
+    };
+    const onPlaying = () => (started = true);
+    const onTime = () => v.duration && setProgress(v.currentTime / v.duration);
+    v.addEventListener('playing', onPlaying);
+    v.addEventListener('timeupdate', onTime);
+    v.addEventListener('ended', leave);
+    v.addEventListener('error', toFallback);
+    v.play().catch(toFallback);
+    // slow connection: don't keep visitors waiting on a black screen
+    const startGuard = window.setTimeout(toFallback, 3500);
+    // never hold the site hostage
+    const safety = window.setTimeout(leave, 14000);
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && leave();
+    window.addEventListener('keydown', onKey);
+    (root.current as HTMLDivElement & { __skip?: () => void }).__skip = leave;
+    return () => {
+      window.clearTimeout(startGuard);
+      window.clearTimeout(safety);
+      window.removeEventListener('keydown', onKey);
+      v.removeEventListener('playing', onPlaying);
+      v.removeEventListener('timeupdate', onTime);
+      v.removeEventListener('ended', leave);
+      v.removeEventListener('error', toFallback);
+      v.pause();
+      if (!finished) html.classList.remove('intro-active');
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fallback]);
+
+  if (fallback) return <Intro onDone={onDone} />;
+  const skip = () => (root.current as (HTMLDivElement & { __skip?: () => void }) | null)?.__skip?.();
+  return (
+    <div className={`intro-film${leaving ? ' is-leaving' : ''}`} ref={root} role="dialog" aria-modal="true" aria-label="NEARVOLT EV introduction film" data-testid="intro-film">
+      <video ref={video} className="if-video" src={src} poster={`${base}media/nearvolt-intro-poster.jpg`} muted playsInline preload="auto" aria-hidden="true" />
+      <div className="if-bar" aria-hidden="true">
+        <span style={{ transform: `scaleX(${progress})` }} />
+      </div>
+      <button ref={skipRef} type="button" className="if-skip" onClick={skip}>
         Skip intro <kbd>Esc</kbd>
       </button>
     </div>

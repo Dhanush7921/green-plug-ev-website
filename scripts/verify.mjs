@@ -113,38 +113,39 @@ try {
     const { ctx, page, errors } = await newPage('desktop', {}, { lag: false });
     await page.goto(url('/?nowebgl'), { waitUntil: 'load' });
     await wait(1800);
-    const shown = await page.locator('.intro').count();
-    const skip = await page.locator('.ii-skip').isVisible().catch(() => false);
+    const shown = await page.locator('.intro, .intro-film').count();
+    const skip = await page.locator('.ii-skip, .if-skip').isVisible().catch(() => false);
     check('Intro plays on first home visit', shown === 1);
+    check('Intro film video is playing', await page.evaluate(() => { const v = document.querySelector('.if-video'); return !!v && !v.paused && v.currentTime > 0; }));
     check('Intro has a visible Skip button', skip);
     await wait(1800);
     await page.screenshot({ path: path.join(out, 'intro-mid.png') });
-    await page.locator('.ii-skip').click();
+    await page.locator('.ii-skip, .if-skip').click();
     await wait(900);
-    const gone = await page.locator('.intro').count();
+    const gone = await page.locator('.intro, .intro-film').count();
     const locked = await page.evaluate(() => document.documentElement.classList.contains('intro-active'));
     check('Skip removes the intro and unlocks scrolling', gone === 0 && !locked);
     await page.reload({ waitUntil: 'load' });
     await wait(1200);
-    check('Intro does not replay in the same session', (await page.locator('.intro').count()) === 0);
+    check('Intro does not replay in the same session', (await page.locator('.intro, .intro-film').count()) === 0);
     check('Intro: no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
     await ctx.close();
     // natural completion + hand-off
     const n = await newPage('desktop', {}, { lag: false });
     await n.page.goto(url('/?nowebgl'), { waitUntil: 'load' });
-    await n.page.waitForSelector('.intro', { state: 'detached', timeout: 15000 }).catch(() => {});
+    await n.page.waitForSelector('.intro, .intro-film', { state: 'detached', timeout: 15000 }).catch(() => {});
     const elapsed = await n.page.evaluate(() => performance.now());
-    check('Intro hands over to the page by itself (≤ 8 s safety cap)', (await n.page.locator('.intro').count()) === 0 && !(await n.page.evaluate(() => document.documentElement.classList.contains('intro-active'))), `${(elapsed / 1000).toFixed(1)} s after navigation`);
+    check('Intro hands over to the page by itself (≤ 14 s safety cap)', (await n.page.locator('.intro, .intro-film').count()) === 0 && !(await n.page.evaluate(() => document.documentElement.classList.contains('intro-active'))), `${(elapsed / 1000).toFixed(1)} s after navigation`);
     await n.ctx.close();
     const r = await newPage('desktop', { reducedMotion: 'reduce' });
     await r.page.goto(url('/?nowebgl'), { waitUntil: 'load' });
     await wait(800);
-    check('Reduced motion: intro skipped entirely', (await r.page.locator('.intro').count()) === 0);
+    check('Reduced motion: intro skipped entirely', (await r.page.locator('.intro, .intro-film').count()) === 0);
     await r.ctx.close();
     const o = await newPage('desktop');
     await o.page.goto(url('/faq'), { waitUntil: 'load' });
     await wait(800);
-    check('Intro does not block secondary pages', (await o.page.locator('.intro').count()) === 0);
+    check('Intro does not block secondary pages', (await o.page.locator('.intro, .intro-film').count()) === 0);
     await o.ctx.close();
   }
 

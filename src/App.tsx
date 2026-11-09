@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, type ComponentType } from 'react';
 import { Footer } from './components/Footer';
-import { Intro, shouldPlayIntro } from './components/Intro';
+import { IntroFilm, shouldPlayIntro } from './components/Intro';
 import { Nav } from './components/Nav';
 import { PointerSystem } from './components/PointerSystem';
 import { RouteView } from './components/RouteView';
@@ -45,7 +45,7 @@ export function App() {
         </main>
         <Footer />
         <PointerSystem />
-        {intro && <Intro onDone={() => setIntro(false)} />}
+        {intro && <IntroFilm onDone={() => setIntro(false)} />}
       </RouterProvider>
     </ThemeProvider>
   );
