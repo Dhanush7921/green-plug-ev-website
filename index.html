@@ -24,7 +24,9 @@
           d.setAttribute('data-theme', 'light');
         }
         try {
-          var home = location.pathname.replace(/\/+$/, '') === '%BASE_URL%'.replace(/\/+$/, '');
+          var b = '%BASE_URL%';
+          // relative (hash-routed preview) builds: the home page is the '#/' route
+          var home = b === './' ? (location.hash.replace(/^#/, '').split(/[?#]/)[0] || '/') === '/' : location.pathname.replace(/\/+$/, '') === b.replace(/\/+$/, '');
           var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
           if (home && !reduce && !sessionStorage.getItem('gpev-intro')) d.classList.add('intro-pending');
         } catch (e) {}
