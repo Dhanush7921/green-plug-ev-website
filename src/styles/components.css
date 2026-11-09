@@ -1372,7 +1372,7 @@ html.has-cursor textarea {
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: var(--forest);
+  background: #000; /* matches the film's letterbox bars */
   transition: opacity 0.6s ease;
 }
 .intro-film.is-leaving {
@@ -1384,7 +1384,7 @@ html.has-cursor textarea {
   object-fit: cover;
   display: block;
 }
-/* portrait phones: show the whole 16:9 frame (the film is letterboxed by design) */
+/* portrait phones: show the whole frame (the film is letterboxed 2.39:1 by design) */
 @media (max-aspect-ratio: 1/1) {
   .if-video {
     object-fit: contain;
