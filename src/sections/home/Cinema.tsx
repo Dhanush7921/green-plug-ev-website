@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ButtonLink } from '../../components/Button';
 import { Icon, type IconName } from '../../components/Icon';
-import { INTRO_DONE, introActive, SCENE_PROGRESS } from '../../components/Intro';
+import { INTRO_DONE, introActive, introHandoff, SCENE_PROGRESS } from '../../components/Intro';
 import { modelUrl } from '../../config/site';
 import { gsap, ScrollTrigger, useGSAP } from '../../lib/gsap';
 import { hasFinePointer, prefersReducedMotion, useReducedMotion } from '../../lib/prefs';
@@ -158,7 +158,10 @@ export function Cinema() {
 
         // render only while the stage is on screen and the tab is visible
         let inView = true;
-        const sync = () => (inView && !document.hidden && !prefersReducedMotion() ? s.start() : s.stop());
+        // the hero stays paused under the intro film (it would only compete with video decoding)
+        const sync = () => (inView && !document.hidden && !prefersReducedMotion() && !document.documentElement.classList.contains('intro-active') ? s.start() : s.stop());
+        window.addEventListener(INTRO_DONE, sync);
+        cleanups.push(() => window.removeEventListener(INTRO_DONE, sync));
         const io = new IntersectionObserver(([e]) => {
           inView = e.isIntersecting;
           sync();
@@ -181,7 +184,7 @@ export function Cinema() {
         }
         setMode('3d');
         if (prefersReducedMotion()) s.render();
-        else s.start();
+        else sync();
       })
       .catch((err) => {
         console.warn('[NEARVOLT EV] Could not load the 3D scene.', err);
@@ -197,10 +200,21 @@ export function Cinema() {
 
   useEffect(() => sceneRef.current?.setPinFilter(filter), [filter]);
 
+  // a replayed film that runs to its end hands over the same way
+  useEffect(() => {
+    const on = () => {
+      if (introHandoff.seamless && !prefersReducedMotion()) sceneRef.current?.setHandoff();
+    };
+    window.addEventListener(INTRO_DONE, on);
+    return () => window.removeEventListener(INTRO_DONE, on);
+  }, []);
+
   // ---- the connection plays once the scene is ready and the intro has handed over ----
   useEffect(() => {
     const s = sceneRef.current;
     if (mode !== '3d' || !introDone || !s || prefersReducedMotion()) return;
+    // the film ended on this exact view: continue from it instead of replaying the establishing move
+    if (introHandoff.seamless) return void s.setHandoff();
     s.playEstablishing();
     const call = gsap.delayedCall(1.1, () => {
       if (window.scrollY < window.innerHeight * 0.4) s.playConnection(true);

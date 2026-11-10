@@ -313,6 +313,21 @@ export class ChargingScene {
     return this.playConnection(true);
   }
 
+  /**
+   * Seamless hand-off from the intro film: the film's last frame is this scene in its hero pose, already
+   * plugged in and charging with the lights on, so the page continues from exactly that state.
+   */
+  setHandoff() {
+    if (!this.car) return;
+    this.connTl?.kill();
+    this.setConnectionInstant(1);
+    this.cs.push = 0;
+    this.intro.t = 1;
+    this.cine?.setOn();
+    this.carCable.reset(300);
+    if (!this.running) this.render();
+  }
+
   /** Camera establishing move used right after the brand intro. */
   playEstablishing() {
     this.intro.t = 0;

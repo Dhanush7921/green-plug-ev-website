@@ -6,6 +6,7 @@ import { prefersReducedMotion, setPointerEffects, useFinePointer, usePointerEffe
 import { Link, useLocation } from '../lib/router';
 import { useTheme } from '../lib/theme';
 import { ButtonLink } from './Button';
+import { REPLAY_INTRO } from './Intro';
 import { Logo } from './Logo';
 
 export function Footer() {
@@ -87,6 +88,14 @@ export function Footer() {
               <li>
                 <button type="button" className="setting" role="switch" aria-checked={theme === 'dark'} onClick={() => toggle()}>
                   <span className="switch" aria-hidden="true" /> Dark theme
+                </button>
+              </li>
+              <li>
+                <button type="button" className="setting replay-intro" onClick={() => window.dispatchEvent(new Event(REPLAY_INTRO))}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" />
+                  </svg>{' '}
+                  Replay intro film
                 </button>
               </li>
               {fine && !reduced && (

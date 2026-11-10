@@ -1,6 +1,6 @@
-import { lazy, Suspense, useState, type ComponentType } from 'react';
+import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
 import { Footer } from './components/Footer';
-import { IntroFilm, shouldPlayIntro } from './components/Intro';
+import { IntroFilm, REPLAY_INTRO, shouldPlayIntro } from './components/Intro';
 import { Nav } from './components/Nav';
 import { PointerSystem } from './components/PointerSystem';
 import { RouteView } from './components/RouteView';
@@ -33,6 +33,16 @@ const routes = {
 
 export function App() {
   const [intro, setIntro] = useState(shouldPlayIntro);
+  const [replays, setReplays] = useState(0);
+  useEffect(() => {
+    const on = () => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      setReplays((n) => n + 1);
+      setIntro(true);
+    };
+    window.addEventListener(REPLAY_INTRO, on);
+    return () => window.removeEventListener(REPLAY_INTRO, on);
+  }, []);
   return (
     <ThemeProvider>
       <RouterProvider>
@@ -45,7 +55,7 @@ export function App() {
         </main>
         <Footer />
         <PointerSystem />
-        {intro && <IntroFilm onDone={() => setIntro(false)} />}
+        {intro && <IntroFilm key={replays} replay={replays > 0} onDone={() => setIntro(false)} />}
       </RouterProvider>
     </ThemeProvider>
   );

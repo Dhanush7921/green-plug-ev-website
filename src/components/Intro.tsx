@@ -223,34 +223,47 @@ export function Intro({ onDone }: { onDone: () => void }) {
   );
 }
 
+export const REPLAY_INTRO = 'gpev:replay-intro';
+/** True when the film played to its last frame, which matches the hero: the page then continues from that state. */
+export const introHandoff = { seamless: false };
+const FILM_SECONDS = 18;
+
+/** Adaptive source: 1080p60 on larger screens, 720p30 on phones or slow / data-saver connections. */
+function filmSource(base: string) {
+  const nav = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } };
+  const slow = !!nav.connection?.saveData || /(^|-)(2g|3g)$/.test(nav.connection?.effectiveType || '');
+  const small = window.matchMedia('(max-width: 900px), (max-height: 560px)').matches;
+  const probe = document.createElement('video');
+  const ext = probe.canPlayType('video/mp4; codecs="avc1.42E01E"') ? 'mp4' : 'webm';
+  return `${base}media/nearvolt-intro-${small || slow ? '720' : '1080'}.${ext}`;
+}
+
 /**
- * NEARVOLT EV intro film (~9 s, silent): the EV glides into the charging bay, the connector plugs in, energy runs
- * down the cable, then the NEARVOLT EV title card. Rendered from the site's own 3D scene (licensed car model, see
- * Legal & credits). Plays once per session on the home page; Skip / Esc at any time. If the film cannot start quickly
- * (autoplay blocked, slow network, Data Saver, decoding error) the animated logo intro plays instead.
+ * The 18 s NEARVOLT EV story film: low battery at night, the app finds a home charger 1.2 km away, a slot is
+ * reserved, the car charges, and the energy becomes the logo before the camera settles into the website's
+ * own 3D hero. Plays muted (sound toggle), skippable, once per session; falls back to the logo intro, and the
+ * page is never blocked if the video cannot play.
  */
-export function IntroFilm({ onDone }: { onDone: () => void }) {
+export function IntroFilm({ onDone, replay = false }: { onDone: () => void; replay?: boolean }) {
   const [fallback, setFallback] = useState(() => {
     const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    return !!nav.connection?.saveData;
+    return !replay && !!nav.connection?.saveData;
   });
   const root = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const skipRef = useRef<HTMLButtonElement>(null);
   const [progress, setProgress] = useState(0);
   const [leaving, setLeaving] = useState(false);
+  const [muted, setMuted] = useState(true);
   const base = import.meta.env.BASE_URL || '/';
-  // H.264 where supported (Safari, Chrome, Edge), VP9 WebM otherwise (open-source Chromium/Firefox builds)
-  const [src] = useState(() => {
-    const probe = document.createElement('video');
-    return `${base}media/nearvolt-intro.${probe.canPlayType('video/mp4; codecs="avc1.42E01E"') ? 'mp4' : 'webm'}`;
-  });
+  const [src] = useState(() => filmSource(base));
 
   useEffect(() => {
     if (fallback) return;
     const html = document.documentElement;
     html.classList.remove('intro-pending');
     html.classList.add('intro-active');
+    introHandoff.seamless = false;
     try {
       sessionStorage.setItem(KEY, '1');
     } catch {
@@ -260,17 +273,21 @@ export function IntroFilm({ onDone }: { onDone: () => void }) {
     const v = video.current!;
     let finished = false;
     let started = false;
+    let leavingNow = false;
     const finish = () => {
       if (finished) return;
       finished = true;
-      html.classList.remove('intro-active');
-      window.dispatchEvent(new Event(INTRO_DONE));
       onDone();
     };
-    const leave = () => {
-      if (finished) return;
+    const leave = (seamless: boolean) => {
+      if (finished || leavingNow) return;
+      leavingNow = true;
+      introHandoff.seamless = seamless;
+      // hand over now, so the hero is already in its matching state while the film dissolves away
+      html.classList.remove('intro-active');
+      window.dispatchEvent(new Event(INTRO_DONE));
       setLeaving(true);
-      window.setTimeout(finish, 600);
+      window.setTimeout(finish, seamless ? 450 : 600);
     };
     const toFallback = () => {
       if (started || finished) return;
@@ -278,44 +295,72 @@ export function IntroFilm({ onDone }: { onDone: () => void }) {
       setFallback(true);
     };
     const onPlaying = () => (started = true);
-    const onTime = () => v.duration && setProgress(v.currentTime / v.duration);
+    let lastT = -1;
+    let lastMove = performance.now();
+    const onTime = () => {
+      if (v.currentTime !== lastT) {
+        lastT = v.currentTime;
+        lastMove = performance.now();
+      }
+      if (v.duration) setProgress(v.currentTime / v.duration);
+    };
+    const onEnded = () => leave(true);
     v.addEventListener('playing', onPlaying);
     v.addEventListener('timeupdate', onTime);
-    v.addEventListener('ended', leave);
+    v.addEventListener('ended', onEnded);
     v.addEventListener('error', toFallback);
     v.play().catch(toFallback);
     // slow connection: don't keep visitors waiting on a black screen
-    const startGuard = window.setTimeout(toFallback, 3500);
-    // never hold the site hostage
-    const safety = window.setTimeout(leave, 14000);
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && leave();
+    const startGuard = window.setTimeout(toFallback, 4000);
+    // never hold the site hostage: leave if playback stalls for 5 s, or after a hard cap
+    const watchdog = window.setInterval(() => {
+      if (started && !v.ended && performance.now() - lastMove > 5000) leave(false);
+    }, 1000);
+    const safety = window.setTimeout(() => leave(false), FILM_SECONDS * 2.5 * 1000);
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && leave(false);
     window.addEventListener('keydown', onKey);
-    (root.current as HTMLDivElement & { __skip?: () => void }).__skip = leave;
+    (root.current as HTMLDivElement & { __skip?: () => void }).__skip = () => leave(false);
     return () => {
       window.clearTimeout(startGuard);
       window.clearTimeout(safety);
+      window.clearInterval(watchdog);
       window.removeEventListener('keydown', onKey);
       v.removeEventListener('playing', onPlaying);
       v.removeEventListener('timeupdate', onTime);
-      v.removeEventListener('ended', leave);
+      v.removeEventListener('ended', onEnded);
       v.removeEventListener('error', toFallback);
       v.pause();
-      if (!finished) html.classList.remove('intro-active');
+      if (!leavingNow) html.classList.remove('intro-active');
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fallback]);
 
   if (fallback) return <Intro onDone={onDone} />;
   const skip = () => (root.current as (HTMLDivElement & { __skip?: () => void }) | null)?.__skip?.();
+  const toggleSound = () => {
+    const v = video.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
   return (
     <div className={`intro-film${leaving ? ' is-leaving' : ''}`} ref={root} role="dialog" aria-modal="true" aria-label="NEARVOLT EV introduction film" data-testid="intro-film">
       <video ref={video} className="if-video" src={src} poster={`${base}media/nearvolt-intro-poster.jpg`} muted playsInline preload="auto" aria-hidden="true" />
       <div className="if-bar" aria-hidden="true">
         <span style={{ transform: `scaleX(${progress})` }} />
       </div>
-      <button ref={skipRef} type="button" className="if-skip" onClick={skip}>
-        Skip intro <kbd>Esc</kbd>
-      </button>
+      <div className="if-controls">
+        <button type="button" className="if-btn if-sound" onClick={toggleSound} aria-pressed={!muted} aria-label={muted ? 'Turn sound on' : 'Turn sound off'}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+            {muted ? <path d="m16 9.5 5 5m0-5-5 5" /> : <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />}
+          </svg>
+          <span>{muted ? 'Sound' : 'Mute'}</span>
+        </button>
+        <button ref={skipRef} type="button" className="if-btn if-skip" onClick={skip}>
+          Skip intro <kbd>Esc</kbd>
+        </button>
+      </div>
     </div>
   );
 }

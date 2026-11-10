@@ -118,6 +118,13 @@ try {
     check('Intro plays on first home visit', shown === 1);
     check('Intro film video is playing', await page.evaluate(() => { const v = document.querySelector('.if-video'); return !!v && !v.paused && v.currentTime > 0; }));
     check('Intro has a visible Skip button', skip);
+    const film = (await page.locator('.intro-film').count()) === 1;
+    if (film) {
+      check('Intro film has a sound toggle (starts muted)', (await page.locator('.if-sound[aria-pressed="false"]').count()) === 1 && (await page.evaluate(() => document.querySelector('.if-video').muted)));
+      await page.locator('.if-sound').click();
+      check('Sound toggle unmutes the film', await page.evaluate(() => !document.querySelector('.if-video').muted));
+      check('Film source matches the viewport (1080p on desktop)', /nearvolt-intro-1080\.(mp4|webm)$/.test(await page.evaluate(() => document.querySelector('.if-video').currentSrc)));
+    }
     await wait(1800);
     await page.screenshot({ path: path.join(out, 'intro-mid.png') });
     await page.locator('.ii-skip, .if-skip').click();
@@ -133,9 +140,9 @@ try {
     // natural completion + hand-off
     const n = await newPage('desktop', {}, { lag: false });
     await n.page.goto(url('/?nowebgl'), { waitUntil: 'load' });
-    await n.page.waitForSelector('.intro, .intro-film', { state: 'detached', timeout: 15000 }).catch(() => {});
+    await n.page.waitForSelector('.intro, .intro-film', { state: 'detached', timeout: 30000 }).catch(() => {});
     const elapsed = await n.page.evaluate(() => performance.now());
-    check('Intro hands over to the page by itself (≤ 14 s safety cap)', (await n.page.locator('.intro, .intro-film').count()) === 0 && !(await n.page.evaluate(() => document.documentElement.classList.contains('intro-active'))), `${(elapsed / 1000).toFixed(1)} s after navigation`);
+    check('Intro hands over to the page by itself (18 s film, ≤ 24 s safety cap)', (await n.page.locator('.intro, .intro-film').count()) === 0 && !(await n.page.evaluate(() => document.documentElement.classList.contains('intro-active'))), `${(elapsed / 1000).toFixed(1)} s after navigation`);
     await n.ctx.close();
     const r = await newPage('desktop', { reducedMotion: 'reduce' });
     await r.page.goto(url('/?nowebgl'), { waitUntil: 'load' });
@@ -146,6 +153,12 @@ try {
     await o.page.goto(url('/faq'), { waitUntil: 'load' });
     await wait(800);
     check('Intro does not block secondary pages', (await o.page.locator('.intro, .intro-film').count()) === 0);
+    await o.page.locator('.replay-intro').click();
+    await wait(1200);
+    const replayed = (await o.page.locator('.intro-film, .intro').count()) === 1;
+    await o.page.keyboard.press('Escape');
+    await wait(1200);
+    check('Footer “Replay intro film” plays it again; Esc closes it', replayed && (await o.page.locator('.intro-film, .intro').count()) === 0);
     await o.ctx.close();
   }
 

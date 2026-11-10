@@ -1405,10 +1405,14 @@ html.has-cursor textarea {
   transform-origin: 0 50%;
   transition: transform 0.25s linear;
 }
-.if-skip {
+.if-controls {
   position: absolute;
   right: clamp(16px, 3vw, 36px);
   bottom: clamp(18px, 4vh, 40px);
+  display: flex;
+  gap: 10px;
+}
+.if-btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -1421,7 +1425,7 @@ html.has-cursor textarea {
   font: 500 14px/1 var(--font-body, inherit);
   cursor: pointer;
 }
-.if-skip kbd {
+.if-btn kbd {
   font: inherit;
   font-size: 11px;
   opacity: 0.6;
@@ -1429,10 +1433,14 @@ html.has-cursor textarea {
   border: 1px solid rgb(var(--mint-rgb) / 0.3);
   border-radius: 6px;
 }
-.if-skip:hover {
+.if-btn:hover {
   background: rgb(35 83 71 / 0.75);
 }
-.if-skip:focus-visible {
+.if-btn:focus-visible {
   outline: 2px solid var(--mint);
   outline-offset: 3px;
+}
+/* the film ends on the hero: on a natural end the hand-off is a quick dissolve */
+.intro-film.is-leaving {
+  transition-duration: 0.45s;
 }
